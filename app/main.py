@@ -7,7 +7,7 @@ from app.core.config import settings
 from app.core.exceptions import AppException, app_exception_handler, unhandled_exception_handler
 from app.db.database import SessionLocal
 
-from app.routers import auth , users 
+from app.routers import auth, users 
 
 from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded

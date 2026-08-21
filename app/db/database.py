@@ -14,7 +14,7 @@ engine = create_engine(
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine,expire_on_commit=False)
 Base = declarative_base() 
-
+from app import models
 def get_db():
     db = SessionLocal()
     try:
