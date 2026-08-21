@@ -1,0 +1,46 @@
+import logging
+from contextlib import asynccontextmanager
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+from sqlalchemy import text
+from app.core.config import settings
+from app.core.exceptions import AppException, app_exception_handler, unhandled_exception_handler
+from app.db.database import SessionLocal
+
+logging.basicConfig(level=logging.INFO if settings.ENVIRONMENT == "production" else logging.DEBUG)
+logger = logging.getLogger("app")
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    logger.info("Starting %s in %s mode", settings.PROJECT_NAME, settings.ENVIRONMENT)
+    yield
+    logger.info("Shutting down %s", settings.PROJECT_NAME)
+
+
+app = FastAPI(title=settings.PROJECT_NAME, lifespan=lifespan)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=settings.CORS_ORIGINS,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+app.add_exception_handler(AppException, app_exception_handler)
+app.add_exception_handler(Exception, unhandled_exception_handler)
+
+
+@app.get("/health", tags=["System"])
+def health_check():
+    db = SessionLocal()
+    try:
+        db.execute(text("SELECT 1"))
+        db_status = "ok"
+    except Exception:
+        logger.exception("Database health check failed")
+        db_status = "error"
+    finally:
+        db.close()
+    return {"success": True, "message": "Service is running", "data": {"database": db_status}}
