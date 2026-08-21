@@ -24,7 +24,7 @@ def get_db():
         
 @contextmanager
 def session_scope():
-    db= SessionLocal
+    db= SessionLocal()
     try:
         yield db
         db.commit()
