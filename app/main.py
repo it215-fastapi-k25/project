@@ -7,6 +7,12 @@ from app.core.config import settings
 from app.core.exceptions import AppException, app_exception_handler, unhandled_exception_handler
 from app.db.database import SessionLocal
 
+from app.routers import auth , users 
+
+from slowapi import _rate_limit_exceeded_handler
+from slowapi.errors import RateLimitExceeded
+from app.core.limiter import limiter
+
 logging.basicConfig(level=logging.INFO if settings.ENVIRONMENT == "production" else logging.DEBUG)
 logger = logging.getLogger("app")
 
@@ -28,9 +34,14 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+app.state.limiter = limiter
+
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 app.add_exception_handler(AppException, app_exception_handler)
 app.add_exception_handler(Exception, unhandled_exception_handler)
 
+app.include_router(auth.router)
+app.include_router(users.router)
 
 @app.get("/health", tags=["System"])
 def health_check():
