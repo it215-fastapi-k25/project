@@ -18,12 +18,13 @@ class UserUpdate(BaseModel):
     is_active: Optional[bool] = None
 
 
-class UserResponse(UserBase):
+class UserResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
-    
+
     id: int
+    email: EmailStr
+    full_name: str
     role: UserRole
     is_active: bool
-    created_at: datetime 
-    
+    created_at: datetime
     

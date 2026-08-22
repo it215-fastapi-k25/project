@@ -45,10 +45,13 @@ def refresh_access_token(db: Session, refresh_token: str) -> str:
         payload = jwt.decode(refresh_token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
     except JWTError:
         raise UnauthorizedException("Invalid refresh token")
+    
     if payload.get("type") != "refresh":
         raise UnauthorizedException("Invalid token type")
+    
     user_id = payload.get("sub")
     user = db.query(User).filter(User.id == int(user_id)).first()
+    
     if user is None or not user.is_active:
         raise UnauthorizedException("User not found or inactive")
     return create_access_token(user.id, user.role.value)
