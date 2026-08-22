@@ -36,8 +36,8 @@ def seed():
         db.flush()
 
         project = ResearchProject(
-            name="Nghien cuu ung dung AI trong Y te",
-            description="De tai nghien cuu ung dung mo hinh hoc may trong chan doan hinh anh y khoa.",
+            name="Nguyên cứu ứng dụng AI trong y tế",
+            description="Đề tài nghiên cứu ứng dụng mô hình học máy trong chẩn đoán hình ảnh y khoa.",
             owner_id=owner.id,
         )
         db.add(project)
@@ -51,16 +51,16 @@ def seed():
         db.add_all([
             ResearchTask(
                 project_id=project.id,
-                title="Thu thap va tien xu ly du lieu",
-                description="Thu thap tap du lieu anh X-quang va tien xu ly.",
+                title="Thu thập và tiền xử lý dữ liệu",
+                description="Thu thập tập dữ liệu ảnh X-quang và tiền xử lý.",
                 assignee_id=member.id,
                 status=TaskStatus.IN_PROGRESS,
                 priority=TaskPriority.HIGH,
             ),
             ResearchTask(
                 project_id=project.id,
-                title="Viet bao cao tong quan tai lieu",
-                description="Tong hop cac nghien cuu lien quan da cong bo.",
+                title="Viết báo cáo tổng quan tài liệu",
+                description="Tổng hợp các nghiên cứu liên quan đã công bố.",
                 assignee_id=owner.id,
                 status=TaskStatus.TODO,
                 priority=TaskPriority.MEDIUM,
