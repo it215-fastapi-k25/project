@@ -20,8 +20,10 @@ class UserUpdate(BaseModel):
 
 class UserResponse(UserBase):
     model_config = ConfigDict(from_attributes=True)
-
+    
     id: int
     role: UserRole
     is_active: bool
-    created_at: datetime
+    created_at: datetime 
+    
+    

@@ -54,4 +54,5 @@ def health_check():
         db_status = "error"
     finally:
         db.close()
-    return {"success": True, "message": "Service is running", "data": {"database": db_status}}
+    return {"success": True, "message": "Service is running", "data": {"database": db_status}}  
+

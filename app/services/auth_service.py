@@ -7,7 +7,6 @@ from app.core.config import settings
 from jose import jwt, JWTError
 
 
-
 def register_user(db: Session, user_in: UserCreate) -> User :  
     existing = db.query(User).filter(User.email == user_in.email).first() 
     if existing: 
@@ -29,7 +28,6 @@ def authenticate_user(db: Session, email: str, password: str) -> User:
     if not user.is_active:
         raise UnauthorizedException("Account is inactive")
     return user 
-
 
 def login_user(db: Session, email: str, password: str) -> str:
     user = authenticate_user(db, email, password)

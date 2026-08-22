@@ -15,19 +15,19 @@ def seed():
             return
 
         admin = User(
-            email="admin@research.local",
+            email="admin@researchresearch-demo.com",
             password_hash=hash_password("Admin@12345"),
             full_name="System Admin",
             role=UserRole.ADMIN,
         )
         owner = User(
-            email="owner@research.local",
+            email="owner@research-demo.com",
             password_hash=hash_password("Owner@12345"),
             full_name="Nguyen Van Owner",
             role=UserRole.USER,
         )
         member = User(
-            email="member@research.local",
+            email="member@researchresearch-demo.com",
             password_hash=hash_password("Member@12345"),
             full_name="Tran Thi Member",
             role=UserRole.USER,
