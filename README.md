@@ -79,7 +79,7 @@ Tài khoản mẫu sau khi seed:
 | Email | Mật khẩu | Vai trò |
 |---|---|---|
 | admin@researchresearch-demo.com| Admin@12345 | ADMIN |
-| owner@researchresearch-demo.com | Owner@12345 | USER (owner của project mẫu) |
+| owner@research-demo.com | Owner@12345 | USER (owner của project mẫu) |
 | member@researchresearch-demo.com | Member@12345 | USER (member của project mẫu) |
 
 ## Chạy ứng dụng
