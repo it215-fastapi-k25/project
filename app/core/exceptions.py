@@ -1,5 +1,7 @@
 import logging
+from datetime import datetime, timezone
 from fastapi import Request, status
+from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 
 logger = logging.getLogger("app")
@@ -37,10 +39,33 @@ class ConflictException(AppException):
         super().__init__(status.HTTP_409_CONFLICT, message, details)
 
 
+def build_envelope(status_code: int, message: str, path: str, data=None, error=None) -> dict:
+    return {
+        "statusCode": status_code,
+        "message": message,
+        "data": data,
+        "error": error,
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "path": path,
+    }
+
+
 async def app_exception_handler(request: Request, exc: AppException):
     return JSONResponse(
         status_code=exc.status_code,
-        content={"success": False, "message": exc.message, "details": exc.details, "data": None},
+        content=build_envelope(exc.status_code, exc.message, str(request.url.path), error=exc.details),
+    )
+
+
+async def validation_exception_handler(request: Request, exc: RequestValidationError):
+    return JSONResponse(
+        status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+        content=build_envelope(
+            status.HTTP_422_UNPROCESSABLE_ENTITY,
+            "Validation error",
+            str(request.url.path),
+            error=exc.errors(),
+        ),
     )
 
 
@@ -48,5 +73,7 @@ async def unhandled_exception_handler(request: Request, exc: Exception):
     logger.exception("Unhandled exception on %s %s", request.method, request.url.path)
     return JSONResponse(
         status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-        content={"success": False, "message": "Internal server error", "details": None, "data": None},
+        content=build_envelope(
+            status.HTTP_500_INTERNAL_SERVER_ERROR, "Internal server error", str(request.url.path)
+        ),
     )
