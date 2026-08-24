@@ -1,12 +1,20 @@
 from datetime import datetime
 from typing import Optional
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field , field_validator
 from app.models.research_project import MemberRole
 
 
 class ResearchProjectBase(BaseModel):
     name: str = Field(min_length=1, max_length=255)
-    description: Optional[str] = Field(default=None, max_length=5000)
+    description: Optional[str] = Field(default=None, max_length=5000) 
+    
+    @field_validator("name") 
+    @classmethod 
+    def name_must_not_be_blank(cls,v:str) -> str : 
+        stripped = v.strip() 
+        if not stripped : 
+            raise ValueError("Project name cannot be blank")
+        return stripped
 
 
 class ResearchProjectCreate(ResearchProjectBase):
