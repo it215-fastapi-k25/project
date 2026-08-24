@@ -8,7 +8,11 @@ from app.core.exceptions import NotFoundException, ForbiddenException
 
 
 def get_project_or_404(db: Session, project_id: int) -> ResearchProject:
-    project = db.query(ResearchProject).filter(ResearchProject.id == project_id).first()
+    project = db.query(ResearchProject).filter(
+        ResearchProject.id == project_id,
+        # update đk về phần soft delete -> taisetsu
+        ResearchProject.is_deleted == False,
+    ).first()
     if project is None:
         raise NotFoundException("Research project not found")
     return project
