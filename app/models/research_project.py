@@ -1,7 +1,7 @@
 import enum
 from datetime import datetime
 from typing import Optional
-from sqlalchemy import String, Text, DateTime, ForeignKey, Enum, UniqueConstraint
+from sqlalchemy import String, Text, DateTime, ForeignKey, Enum, UniqueConstraint , Boolean
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.sql import func
 from app.db.database import Base
@@ -20,6 +20,10 @@ class ResearchProject(Base):
     description: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     
     owner_id: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=False, index=True)
+    # Thêm 2 cột soft-delete 
+    is_deleted: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    deleted_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
+    
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
     owner: Mapped["User"] = relationship(back_populates="owned_projects")
