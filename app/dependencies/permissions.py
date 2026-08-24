@@ -40,4 +40,4 @@ def require_project_owner(
     membership = get_membership_or_none(db, project_id, current_user.id)
     if membership is None or membership.role != MemberRole.OWNER:
         raise ForbiddenException("Only the project owner can perform this action")
-    return project
+    return project 
