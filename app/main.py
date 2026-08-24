@@ -2,9 +2,16 @@ import logging
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.exceptions import RequestValidationError 
 from sqlalchemy import text
 from app.core.config import settings
-from app.core.exceptions import AppException, app_exception_handler, unhandled_exception_handler
+from app.core.exceptions import (
+    AppException,
+    app_exception_handler,
+    unhandled_exception_handler,
+    validation_exception_handler,
+)
+
 from app.db.database import SessionLocal
 
 from app.routers import auth, users 
