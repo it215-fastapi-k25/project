@@ -14,7 +14,7 @@ from app.core.exceptions import (
 
 from app.db.database import SessionLocal
 
-from app.routers import auth, users 
+from app.routers import auth, users , research_project
 
 from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
@@ -50,6 +50,7 @@ app.add_exception_handler(Exception, unhandled_exception_handler)
 
 app.include_router(auth.router)
 app.include_router(users.router)
+app.include_router(research_project.router) 
 
 @app.get("/health", tags=["System"])
 def health_check():
