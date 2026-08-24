@@ -1,3 +1,5 @@
+from datetime import datetime, timezone
+from app.models.activity_log import ActivityLog
 from typing import Optional
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
@@ -7,6 +9,9 @@ from app.schemas.research_project import ResearchProjectCreate, ResearchProjectU
 from app.core.exceptions import NotFoundException, ConflictException, BadRequestException
 from app.dependencies.permissions import get_membership_or_none
 
+
+def log_activity(db: Session, project_id, actor_id: int, action: str, detail: str = None):
+    db.add(ActivityLog(project_id=project_id, actor_id=actor_id, action=action, detail=detail))
 
 def escape_like(value: str) -> str:
     return value.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
@@ -18,6 +23,7 @@ def create_project(db: Session, owner_id: int, data: ResearchProjectCreate) -> R
     db.flush()
     membership = ResearchMember(project_id=project.id, user_id=owner_id, role=MemberRole.OWNER)
     db.add(membership)
+    log_activity(db, project.id, owner_id, "CREATE_PROJECT", f"Created project '{project.name}'")
     db.commit()
     db.refresh(project)
     return project
@@ -27,7 +33,7 @@ def list_my_projects(db: Session, user_id: int, search: Optional[str] = None) ->
     query = (
         db.query(ResearchProject)
         .join(ResearchMember, ResearchMember.project_id == ResearchProject.id)
-        .filter(ResearchMember.user_id == user_id)
+        .filter(ResearchMember.user_id == user_id, ResearchProject.is_deleted == False)
     )
     if search:
         pattern = f"%{escape_like(search)}%"
@@ -35,23 +41,26 @@ def list_my_projects(db: Session, user_id: int, search: Optional[str] = None) ->
     return query.all()
 
 
-def update_project(db: Session, project: ResearchProject, data: ResearchProjectUpdate) -> ResearchProject:
+def update_project(db: Session, project: ResearchProject, data: ResearchProjectUpdate, actor_id: int) -> ResearchProject:
     changes = data.model_dump(exclude_unset=True)
     if not changes:
         raise BadRequestException("No fields provided to update")
     for field, value in changes.items():
         setattr(project, field, value)
+    log_activity(db, project.id, actor_id, "UPDATE_PROJECT", f"Updated fields: {list(changes.keys())}")
     db.commit()
     db.refresh(project)
     return project
 
 
-def delete_project(db: Session, project: ResearchProject) -> None:
-    db.delete(project)
-    db.commit()
+def soft_delete_project(db: Session, project: ResearchProject, actor_id: int) -> None:
+    project.is_deleted = True
+    project.deleted_at = datetime.now(timezone.utc)
+    log_activity(db, project.id, actor_id, "DELETE_PROJECT", f"Soft-deleted project '{project.name}'")
+    db.commit() 
 
 
-def add_member(db: Session, project_id: int, target_user_id: int) -> ResearchMember:
+def add_member(db: Session, project_id: int, target_user_id: int, actor_id: int) -> ResearchMember:
     user = db.query(User).filter(User.id == target_user_id).first()
     if user is None:
         raise NotFoundException("User not found")
@@ -59,6 +68,7 @@ def add_member(db: Session, project_id: int, target_user_id: int) -> ResearchMem
         raise ConflictException("User is already a member of this project")
     membership = ResearchMember(project_id=project_id, user_id=target_user_id, role=MemberRole.MEMBER)
     db.add(membership)
+    log_activity(db, project_id, actor_id, "ADD_MEMBER", f"Added user_id={target_user_id}")
     try:
         db.commit()
     except IntegrityError:
@@ -68,7 +78,7 @@ def add_member(db: Session, project_id: int, target_user_id: int) -> ResearchMem
     return membership
 
 
-def remove_member(db: Session, project_id: int, target_user_id: int) -> None:
+def remove_member(db: Session, project_id: int, target_user_id: int, actor_id: int) -> None:
     membership = get_membership_or_none(db, project_id, target_user_id)
     if membership is None:
         raise NotFoundException("Membership not found")
@@ -79,6 +89,7 @@ def remove_member(db: Session, project_id: int, target_user_id: int) -> None:
         if owner_count <= 1:
             raise BadRequestException("Cannot remove the last owner of the project")
     db.delete(membership)
+    log_activity(db, project_id, actor_id, "REMOVE_MEMBER", f"Removed user_id={target_user_id}")
     db.commit()
 
 

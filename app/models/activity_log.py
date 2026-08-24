@@ -10,6 +10,7 @@ class ActivityLog(Base):
     __tablename__ = "activity_logs"
 
     id: Mapped[int] = mapped_column(primary_key=True, index=True)
+    
     project_id: Mapped[Optional[int]] = mapped_column(ForeignKey("research_projects.id"), nullable=True, index=True)
     actor_id: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=False)
     action: Mapped[str] = mapped_column(String(50), nullable=False)
