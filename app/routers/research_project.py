@@ -31,18 +31,18 @@ def get_project_detail(project: ResearchProject = Depends(require_project_member
 
 
 @router.patch("/{project_id}", response_model=ResearchProjectResponse)
-def update_project(data: ResearchProjectUpdate, project: ResearchProject = Depends(require_project_owner), db: Session = Depends(get_db)):
-    return service.update_project(db, project, data)
+def update_project(data: ResearchProjectUpdate, project: ResearchProject = Depends(require_project_owner), current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    return service.update_project(db, project, data, current_user.id)
 
 
 @router.delete("/{project_id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_project(project: ResearchProject = Depends(require_project_owner), db: Session = Depends(get_db)):
-    service.delete_project(db, project)
+def soft_delete_project(project: ResearchProject = Depends(require_project_owner), current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    service.soft_delete_project(db, project, current_user.id)
 
 
 @router.post("/{project_id}/members", response_model=ResearchMemberResponse, status_code=status.HTTP_201_CREATED)
-def add_member(data: ResearchMemberCreate, project: ResearchProject = Depends(require_project_owner), db: Session = Depends(get_db)):
-    return service.add_member(db, project.id, data.user_id)
+def add_member(data: ResearchMemberCreate, project: ResearchProject = Depends(require_project_owner), current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    return service.add_member(db, project.id, data.user_id, current_user.id)
 
 
 @router.get("/{project_id}/members", response_model=List[ResearchMemberResponse])
@@ -51,5 +51,5 @@ def list_members(project: ResearchProject = Depends(require_project_member), db:
 
 
 @router.delete("/{project_id}/members/{user_id}", status_code=status.HTTP_204_NO_CONTENT)
-def remove_member(user_id: int, project: ResearchProject = Depends(require_project_owner), db: Session = Depends(get_db)):
-    service.remove_member(db, project.id, user_id)
+def remove_member(user_id: int, project: ResearchProject = Depends(require_project_owner), current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    service.remove_member(db, project.id, user_id, current_user.id)
