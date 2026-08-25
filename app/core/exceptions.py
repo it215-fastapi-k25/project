@@ -76,4 +76,15 @@ async def unhandled_exception_handler(request: Request, exc: Exception):
         content=build_envelope(
             status.HTTP_500_INTERNAL_SERVER_ERROR, "Internal server error", str(request.url.path)
         ),
+    ) 
+    
+async def rate_limit_exceeded_handler(request: Request, exc) -> JSONResponse:
+    return JSONResponse(
+        status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+        content=build_envelope(
+            status.HTTP_429_TOO_MANY_REQUESTS,
+            "Too many requests",
+            str(request.url.path),
+            error=str(exc.detail) if hasattr(exc, "detail") else str(exc),
+        ),
     )

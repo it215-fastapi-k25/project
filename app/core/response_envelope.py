@@ -3,7 +3,7 @@ from datetime import datetime, timezone
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.responses import Response
 
-EXCLUDED_PREFIXES = ("/docs", "/redoc", "/openapi.json")
+EXCLUDED_PREFIXES = ("/docs", "/redoc", "/openapi.json", "/auth/login", "/auth/refresh")
 
 
 class ResponseEnvelopeMiddleware(BaseHTTPMiddleware):

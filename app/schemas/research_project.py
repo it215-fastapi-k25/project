@@ -36,10 +36,11 @@ class ResearchProjectUpdate(BaseModel):
         return stripped
 
 
-class ResearchProjectResponse(ResearchProjectBase):
+class ResearchProjectResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
-
     id: int
+    name: str
+    description: Optional[str]
     owner_id: int
     created_at: datetime
 

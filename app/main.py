@@ -10,13 +10,13 @@ from app.core.exceptions import (
     app_exception_handler,
     unhandled_exception_handler,
     validation_exception_handler,
+    rate_limit_exceeded_handler,
 )
 from app.core.response_envelope import ResponseEnvelopeMiddleware
 from app.db.database import SessionLocal
 
 from app.routers import auth, users , research_project
 
-from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 from app.core.limiter import limiter
 
@@ -45,7 +45,7 @@ app.add_middleware(
 
 app.state.limiter = limiter
 
-app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+app.add_exception_handler(RateLimitExceeded,rate_limit_exceeded_handler)
 app.add_exception_handler(AppException, app_exception_handler)
 app.add_exception_handler(RequestValidationError, validation_exception_handler)
 app.add_exception_handler(Exception, unhandled_exception_handler)
