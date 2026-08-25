@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional , List
 from fastapi import APIRouter, Depends, Query, status
 from sqlalchemy.orm import Session
 from app.db.database import get_db
@@ -9,6 +9,9 @@ from app.models.research_project import ResearchProject
 from app.models.research_task import ResearchTask, TaskStatus, TaskPriority
 from app.schemas.research_task import ResearchTaskCreate, ResearchTaskUpdate, ResearchTaskResponse, PaginatedTasks
 from app.services import research_task_service as service
+
+from app.models.comment import Comment
+from app.schemas.comment import CommentCreate, CommentResponse
 
 router = APIRouter(tags=["Research Tasks"])
 
@@ -54,4 +57,21 @@ def update_task(data: ResearchTaskUpdate, task: ResearchTask = Depends(require_t
                summary="Xóa nhiệm vụ, chi Owner hoac Assignee")
 def delete_task(task: ResearchTask = Depends(require_task_update_permission),
                  current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
-    service.delete_task(db, task, current_user.id)
+    service.delete_task(db, task, current_user.id) 
+
+# Comment  
+@router.post("/research-tasks/{task_id}/comments", response_model=CommentResponse,
+             status_code=status.HTTP_201_CREATED, summary="Them comment vao nhiem vu")
+def create_comment(data: CommentCreate, task: ResearchTask = Depends(require_task_member),
+                    current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    comment = Comment(task_id=task.id, author_id=current_user.id, content=data.content)
+    db.add(comment)
+    db.commit()
+    db.refresh(comment)
+    return comment
+
+
+@router.get("/research-tasks/{task_id}/comments", response_model=List[CommentResponse], summary="Danh sach comment")
+def list_comments(task: ResearchTask = Depends(require_task_member), db: Session = Depends(get_db)):
+    return db.query(Comment).filter(Comment.task_id == task.id).order_by(Comment.created_at.asc()).all()
+
