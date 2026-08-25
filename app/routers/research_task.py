@@ -70,7 +70,7 @@ def delete_task(task: ResearchTask = Depends(require_task_update_permission),
 
 # Comment  
 @router.post("/research-tasks/{task_id}/comments", response_model=CommentResponse,
-             status_code=status.HTTP_201_CREATED, summary="Them comment vao nhiem vu")
+             status_code=status.HTTP_201_CREATED, summary="Thêm comment vào nhiệm vụ")
 def create_comment(data: CommentCreate, task: ResearchTask = Depends(require_task_member),
                     current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
     comment = Comment(task_id=task.id, author_id=current_user.id, content=data.content)
@@ -80,13 +80,13 @@ def create_comment(data: CommentCreate, task: ResearchTask = Depends(require_tas
     return comment
 
 
-@router.get("/research-tasks/{task_id}/comments", response_model=List[CommentResponse], summary="Danh sach comment")
+@router.get("/research-tasks/{task_id}/comments", response_model=List[CommentResponse], summary="Danh sách comment")
 def list_comments(task: ResearchTask = Depends(require_task_member), db: Session = Depends(get_db)):
     return db.query(Comment).filter(Comment.task_id == task.id).order_by(Comment.created_at.asc()).all()
 
 
 # Attachment 
-@router.post("/research-tasks/{task_id}/attachments", status_code=status.HTTP_201_CREATED, summary="Upload file dinh kem")
+@router.post("/research-tasks/{task_id}/attachments", status_code=status.HTTP_201_CREATED, summary="Upload file đính kèm")
 async def upload_attachment(
     file: UploadFile = File(...),
     task: ResearchTask = Depends(require_task_member),
