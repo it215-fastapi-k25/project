@@ -95,18 +95,24 @@ async def upload_attachment(
 ):
     if file.content_type not in ALLOWED_CONTENT_TYPES:
         raise BadRequestException("File type not allowed")
+    
     content = await file.read()
+    
     if len(content) > MAX_FILE_SIZE_BYTES:
         raise BadRequestException("File exceeds maximum allowed size of 10MB")
+    
     os.makedirs(UPLOAD_DIR, exist_ok=True)
     stored_name = f"{uuid.uuid4().hex}_{file.filename}"
     file_path = os.path.join(UPLOAD_DIR, stored_name)
+    
     with open(file_path, "wb") as f:
         f.write(content)
+        
     attachment = Attachment(
         task_id=task.id, uploader_id=current_user.id, file_name=file.filename,
         file_path=file_path, file_size=len(content), content_type=file.content_type,
     )
+    
     db.add(attachment)
     db.commit()
     db.refresh(attachment)
