@@ -50,7 +50,7 @@ Các biến cần cấu hình trong `.env`:
 | DATABASE_URL | Chuỗi kết nối MySQL | mysql+pymysql://root:pass@localhost:3306/research_management_db |
 | SECRET_KEY | Khóa bí mật dùng ký JWT | chuỗi ngẫu nhiên dài |
 | ALGORITHM | Thuật toán mã hóa JWT | HS256 |
-| ACCESS_TOKEN_EXPIRE_MINUTES | Thời gian sống của access token | 30 |
+| ACCESS_TOKEN_EXPIRE_MINUTES | Thời gian sống của access token | 60 |
 | ENVIRONMENT | Môi trường chạy | development hoặc production |
 | CORS_ORIGINS | Danh sách domain được phép gọi API | ["http://localhost:3000"] |
 
