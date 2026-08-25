@@ -23,7 +23,17 @@ class ResearchProjectCreate(ResearchProjectBase):
 
 class ResearchProjectUpdate(BaseModel):
     name: Optional[str] = Field(default=None, min_length=1, max_length=255)
-    description: Optional[str] = Field(default=None, max_length=5000)
+    description: Optional[str] = Field(default=None, max_length=5000) 
+    
+    @field_validator("name")
+    @classmethod
+    def name_must_not_be_blank(cls, v: Optional[str]) -> Optional[str]:
+        if v is None:
+            return v
+        stripped = v.strip()
+        if not stripped:
+            raise ValueError("Project name cannot be blank")
+        return stripped
 
 
 class ResearchProjectResponse(ResearchProjectBase):

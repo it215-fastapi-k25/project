@@ -11,12 +11,11 @@ from app.core.exceptions import (
     unhandled_exception_handler,
     validation_exception_handler,
 )
-
+from app.core.response_envelope import ResponseEnvelopeMiddleware
 from app.db.database import SessionLocal
 
 from app.routers import auth, users , research_project
 
-from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 from app.core.limiter import limiter
 
@@ -32,6 +31,8 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(title=settings.PROJECT_NAME, lifespan=lifespan)
+
+app.add_middleware(ResponseEnvelopeMiddleware)
 
 app.add_middleware(
     CORSMiddleware,
@@ -63,5 +64,4 @@ def health_check():
         db_status = "error"
     finally:
         db.close()
-    return {"success": True, "message": "Service is running", "data": {"database": db_status}}  
-
+    return {"database": db_status}
