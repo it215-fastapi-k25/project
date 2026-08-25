@@ -9,8 +9,10 @@ from app.schemas.research_project import (
     ResearchMemberResponse,
 )
 from app.schemas.research_task import (
-    ResearchTaskBase,
     ResearchTaskCreate,
     ResearchTaskUpdate,
     ResearchTaskResponse,
+) 
+from app.schemas.comment import (
+    CommentCreate,CommentResponse,
 )

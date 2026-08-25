@@ -1,1 +1,1 @@
-from app.routers import auth, users
+from app.routers import auth, users, research_project, research_task
