@@ -1,5 +1,8 @@
+from app.core.exceptions import BadRequestException
+import os 
+import uuid
 from typing import Optional , List
-from fastapi import APIRouter, Depends, Query, status
+from fastapi import APIRouter, Depends, Query, status, UploadFile, File
 from sqlalchemy.orm import Session
 from app.db.database import get_db
 from app.dependencies.auth import get_current_user
@@ -11,9 +14,15 @@ from app.schemas.research_task import ResearchTaskCreate, ResearchTaskUpdate, Re
 from app.services import research_task_service as service
 
 from app.models.comment import Comment
+from app.models.attachment import Attachment
 from app.schemas.comment import CommentCreate, CommentResponse
 
 router = APIRouter(tags=["Research Tasks"])
+
+ALLOWED_CONTENT_TYPES = {"application/pdf", "image/png", "image/jpeg", "application/msword",
+                          "application/vnd.openxmlformats-officedocument.wordprocessingml.document"}
+MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024
+UPLOAD_DIR = "uploads"
 
 
 @router.post("/research-projects/{project_id}/research-tasks", response_model=ResearchTaskResponse,
@@ -75,3 +84,30 @@ def create_comment(data: CommentCreate, task: ResearchTask = Depends(require_tas
 def list_comments(task: ResearchTask = Depends(require_task_member), db: Session = Depends(get_db)):
     return db.query(Comment).filter(Comment.task_id == task.id).order_by(Comment.created_at.asc()).all()
 
+
+# Attachment 
+@router.post("/research-tasks/{task_id}/attachments", status_code=status.HTTP_201_CREATED, summary="Upload file dinh kem")
+async def upload_attachment(
+    file: UploadFile = File(...),
+    task: ResearchTask = Depends(require_task_member),
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    if file.content_type not in ALLOWED_CONTENT_TYPES:
+        raise BadRequestException("File type not allowed")
+    content = await file.read()
+    if len(content) > MAX_FILE_SIZE_BYTES:
+        raise BadRequestException("File exceeds maximum allowed size of 10MB")
+    os.makedirs(UPLOAD_DIR, exist_ok=True)
+    stored_name = f"{uuid.uuid4().hex}_{file.filename}"
+    file_path = os.path.join(UPLOAD_DIR, stored_name)
+    with open(file_path, "wb") as f:
+        f.write(content)
+    attachment = Attachment(
+        task_id=task.id, uploader_id=current_user.id, file_name=file.filename,
+        file_path=file_path, file_size=len(content), content_type=file.content_type,
+    )
+    db.add(attachment)
+    db.commit()
+    db.refresh(attachment)
+    return {"id": attachment.id, "file_name": attachment.file_name, "file_size": attachment.file_size}
