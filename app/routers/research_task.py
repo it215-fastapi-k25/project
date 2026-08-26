@@ -26,14 +26,14 @@ UPLOAD_DIR = "uploads"
 
 
 @router.post("/research-projects/{project_id}/research-tasks", response_model=ResearchTaskResponse,
-             status_code=status.HTTP_201_CREATED, summary="Tạo nhiệm vụ nghiên cứu mới trong đề tài")
+             status_code=status.HTTP_201_CREATED, summary="Create a new research task within the project")
 def create_task(data: ResearchTaskCreate, project: ResearchProject = Depends(require_project_member),
                  current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
     return service.create_task(db, project, data, current_user.id)
 
 
 @router.get("/research-projects/{project_id}/research-tasks", response_model=PaginatedTasks,
-            summary="Danh sách nhiệm vụ, hỗ trợ filter/search/pagination/sort")
+            summary="Task list supporting filtering, searching, pagination, and sorting")
 def list_tasks(
     project: ResearchProject = Depends(require_project_member),
     status_filter: Optional[TaskStatus] = Query(default=None, alias="status"),
@@ -50,27 +50,27 @@ def list_tasks(
     return PaginatedTasks(items=items, total=total, page=page, size=size)
 
 
-@router.get("/research-tasks/{task_id}", response_model=ResearchTaskResponse, summary="Chi tiết nhiệm vụ")
+@router.get("/research-tasks/{task_id}", response_model=ResearchTaskResponse, summary="Task details")
 def get_task_detail(task: ResearchTask = Depends(require_task_member)):
     return task
 
 
 @router.patch("/research-tasks/{task_id}", response_model=ResearchTaskResponse,
-              summary="Cập nhật nhiệm vụ, chi Owner hoac Assignee")
+              summary="Update task, assign to Owner or Assignee")
 def update_task(data: ResearchTaskUpdate, task: ResearchTask = Depends(require_task_update_permission),
                  current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
     return service.update_task(db, task, data, current_user.id)
 
 
 @router.delete("/research-tasks/{task_id}", status_code=status.HTTP_204_NO_CONTENT,
-               summary="Xóa nhiệm vụ, chi Owner hoac Assignee")
+               summary="Delete task (creator or assignee only)")
 def delete_task(task: ResearchTask = Depends(require_task_update_permission),
                  current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
     service.delete_task(db, task, current_user.id) 
 
 # Comment  
 @router.post("/research-tasks/{task_id}/comments", response_model=CommentResponse,
-             status_code=status.HTTP_201_CREATED, summary="Thêm comment vào nhiệm vụ")
+             status_code=status.HTTP_201_CREATED, summary="Add a comment to the task")
 def create_comment(data: CommentCreate, task: ResearchTask = Depends(require_task_member),
                     current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
     comment = Comment(task_id=task.id, author_id=current_user.id, content=data.content)
@@ -80,13 +80,13 @@ def create_comment(data: CommentCreate, task: ResearchTask = Depends(require_tas
     return comment
 
 
-@router.get("/research-tasks/{task_id}/comments", response_model=List[CommentResponse], summary="Danh sách comment")
+@router.get("/research-tasks/{task_id}/comments", response_model=List[CommentResponse], summary="List comment")
 def list_comments(task: ResearchTask = Depends(require_task_member), db: Session = Depends(get_db)):
     return db.query(Comment).filter(Comment.task_id == task.id).order_by(Comment.created_at.asc()).all()
 
 
 # Attachment 
-@router.post("/research-tasks/{task_id}/attachments", status_code=status.HTTP_201_CREATED, summary="Upload file đính kèm")
+@router.post("/research-tasks/{task_id}/attachments", status_code=status.HTTP_201_CREATED, summary="Upload attachment")
 async def upload_attachment(
     file: UploadFile = File(...),
     task: ResearchTask = Depends(require_task_member),
