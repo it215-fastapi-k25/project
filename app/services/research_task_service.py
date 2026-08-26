@@ -6,8 +6,8 @@ from app.models.research_project import ResearchProject
 from app.schemas.research_task import ResearchTaskCreate, ResearchTaskUpdate
 from app.core.exceptions import BadRequestException
 from app.dependencies.permissions import get_membership_or_none
-from app.services.research_project_service import escape_like, log_activity
-
+from app.utils.text import escape_like
+from app.services.activity_service import log_activity
 
 def validate_assignee(db: Session, project_id: int, assignee_id: Optional[int]) -> None:
     if assignee_id is None:

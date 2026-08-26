@@ -8,13 +8,8 @@ from app.models.user import User
 from app.schemas.research_project import ResearchProjectCreate, ResearchProjectUpdate
 from app.core.exceptions import NotFoundException, ConflictException, BadRequestException
 from app.dependencies.permissions import get_membership_or_none
-
-
-def log_activity(db: Session, project_id, actor_id: int, action: str, detail: str = None):
-    db.add(ActivityLog(project_id=project_id, actor_id=actor_id, action=action, detail=detail))
-
-def escape_like(value: str) -> str:
-    return value.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
+from app.utils.text import escape_like
+from app.services.activity_service import log_activity
 
 
 def create_project(db: Session, owner_id: int, data: ResearchProjectCreate) -> ResearchProject:
