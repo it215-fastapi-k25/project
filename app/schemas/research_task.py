@@ -1,6 +1,6 @@
 from datetime import datetime
 from typing import Optional
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field , field_validator
 from app.models.research_task import TaskStatus, TaskPriority
 
 
@@ -11,6 +11,13 @@ class ResearchTaskCreate(BaseModel):
     priority: TaskPriority = TaskPriority.MEDIUM
     assignee_id: Optional[int] = Field(default=None, gt=0)
 
+    @field_validator("title")
+    @classmethod
+    def title_must_not_be_blank(cls, v: str) -> str:
+        stripped = v.strip()
+        if not stripped:
+            raise ValueError("Task title cannot be blank")
+        return stripped
 
 class ResearchTaskUpdate(BaseModel):
     title: Optional[str] = Field(default=None, min_length=1, max_length=255)
@@ -20,6 +27,15 @@ class ResearchTaskUpdate(BaseModel):
     status: Optional[TaskStatus] = None
     assignee_id: Optional[int] = Field(default=None, gt=0)
 
+    @field_validator("title")
+    @classmethod
+    def title_must_not_be_blank(cls, v: Optional[str]) -> Optional[str]:
+        if v is None:
+            return v
+        stripped = v.strip()
+        if not stripped:
+            raise ValueError("Task title cannot be blank")
+        return stripped
 
 class ResearchTaskResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
