@@ -19,8 +19,12 @@ def test_7_3_unexpected_exception_returns_500_no_traceback(client, monkeypatch):
         yield
 
     client.app.dependency_overrides[database.get_db] = broken_get_db
-    r = client.get("/users/me", headers={"Authorization": "Bearer fake-token-but-passes-oauth2-shape"})
-    client.app.dependency_overrides.clear()
+    try:
+        r = client.get("/users/me", headers={"Authorization": "Bearer fake-token-but-passes-oauth2-shape"})
+    finally:
+        # dung try/finally de dam bao override luon duoc don dep, tranh
+        # ro ri sang cac test khac ngay ca khi request phia tren tung bi loi
+        client.app.dependency_overrides.clear()
 
     assert r.status_code in (401, 500)
     assert "Traceback" not in r.text

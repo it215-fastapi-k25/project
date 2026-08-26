@@ -20,7 +20,12 @@ def setup_database():
 
 @pytest.fixture
 def client():
-    return TestClient(app)
+    # raise_server_exceptions=False: quan trong khi test case gia lap loi 500
+    # (vd test_7_3). Neu de True, TestClient se re-raise exception ngay ca khi
+    # app da tra ve dung response 500 theo dinh dang envelope, khien test tu
+    # fail va cac dong dependency_overrides.clear() phia sau khong duoc chay,
+    # lam ro ri sang cac test khac chay sau do.
+    return TestClient(app, raise_server_exceptions=False)
 
 
 @pytest.fixture
@@ -31,7 +36,8 @@ def register_and_login(client):
         token = r.json()["access_token"]
         refresh_token = r.json()["refresh_token"]
         headers = {"Authorization": f"Bearer {token}"}
-        me = client.get("/users/me", headers=headers).json()
+        # /users/me duoc boc envelope 6 truong -> du lieu that nam trong "data"
+        me = client.get("/users/me", headers=headers).json()["data"]
         return {"headers": headers, "user_id": me["id"], "email": email, "token": token, "refresh_token": refresh_token}
     return _create
 
@@ -64,5 +70,5 @@ def make_inactive():
 def create_project(client):
     def _create(headers, name="Test Project", description=None):
         r = client.post("/research-projects", json={"name": name, "description": description}, headers=headers)
-        return r.json()["id"]
+        return r.json()["data"]["id"]
     return _create

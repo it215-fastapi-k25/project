@@ -5,7 +5,7 @@ def test_4_1_owner_add_member(client, register_and_login, create_project):
 
     r = client.post(f"/research-projects/{project_id}/members", json={"user_id": member["user_id"]}, headers=owner["headers"])
     assert r.status_code == 201
-    assert r.json()["role"] == "MEMBER"
+    assert r.json()["data"]["role"] == "MEMBER"
 
 
 def test_4_2_add_duplicate_member(client, register_and_login, create_project):
@@ -56,7 +56,7 @@ def test_4_6_list_members(client, register_and_login, create_project):
 
     r = client.get(f"/research-projects/{project_id}/members", headers=member["headers"])
     assert r.status_code == 200
-    roles = {m["user_id"]: m["role"] for m in r.json()}
+    roles = {m["user_id"]: m["role"] for m in r.json()["data"]}
     assert roles[owner["user_id"]] == "OWNER"
     assert roles[member["user_id"]] == "MEMBER"
 

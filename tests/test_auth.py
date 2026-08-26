@@ -3,8 +3,8 @@ import time
 
 def test_1_1_register_success(client):
     r = client.post("/auth/register", json={"email": "u1@test.com", "full_name": "User One", "password": "12345678"})
-    assert r.status_code == 200
-    body = r.json()
+    assert r.status_code == 201
+    body = r.json()["data"]
     assert "password" not in body
     assert "password_hash" not in body
     assert body["email"] == "u1@test.com"
@@ -35,8 +35,8 @@ def test_1_6_register_cannot_escalate_role(client):
     r = client.post("/auth/register", json={
         "email": "hacker@test.com", "full_name": "Hacker", "password": "12345678", "role": "ADMIN"
     })
-    assert r.status_code == 200
-    assert r.json()["role"] == "USER"
+    assert r.status_code == 201
+    assert r.json()["data"]["role"] == "USER"
 
 
 def test_1_7_login_success(client):

@@ -1,6 +1,7 @@
 import logging
 from datetime import datetime, timezone
 from fastapi import Request, status
+from fastapi.encoders import jsonable_encoder
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 
@@ -58,13 +59,17 @@ async def app_exception_handler(request: Request, exc: AppException):
 
 
 async def validation_exception_handler(request: Request, exc: RequestValidationError):
+    # exc.errors() co the chua object khong serialize duoc thanh JSON (vd:
+    # ctx["error"] la instance ValueError khi field_validator raise ValueError).
+    # Phai qua jsonable_encoder truoc khi dua vao JSONResponse, neu khong se
+    # gay loi 500 "Object of type ValueError is not JSON serializable".
     return JSONResponse(
         status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
         content=build_envelope(
             status.HTTP_422_UNPROCESSABLE_ENTITY,
             "Validation error",
             str(request.url.path),
-            error=exc.errors(),
+            error=jsonable_encoder(exc.errors()),
         ),
     )
 
